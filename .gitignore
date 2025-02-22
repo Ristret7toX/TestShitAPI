@@ -1,0 +1,4 @@
+react-chrome-extension/
+.env
+node_modules/
+db.json
