@@ -62,4 +62,47 @@ app.get("/objects", async (req, res) => {
   }
 });
 
+// Save extracted business data to Firestore in "data" collection
+app.post("/save-business", async (req, res) => {
+  try {
+    const businessInfo = req.body;
+
+    if (!businessInfo || Object.keys(businessInfo).length === 0) {
+      return res.status(400).json({ error: "Business info is required" });
+    }
+
+    await db.collection("data").add({
+      ...businessInfo,
+      timestamp: new Date().toISOString()
+    });
+
+    console.log("Business data saved to 'data' collection.");
+    return res.json({ message: "Business data saved successfully" });
+  } catch (error) {
+    console.error("Error saving business data:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// Get all saved business data from Firestore
+app.get("/businesses", async (req, res) => {
+  try {
+    const snapshot = await db.collection("data").get();
+
+    if (snapshot.empty) {
+      return res.status(404).json({ message: "No business data found" });
+    }
+
+    const businesses = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    return res.json(businesses);
+  } catch (error) {
+    console.error("Error fetching business data:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 module.exports = app;
