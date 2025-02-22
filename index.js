@@ -25,21 +25,41 @@ app.get("/", async (req, res) => {
   res.send("Hello COK!");
 });
 
-// Save URL to Firestore
 app.post("/save", async (req, res) => {
   try {
-    const { url } = req.body;
-    if (!url) return res.status(400).json({ error: "URL is required" });
+    const data = req.body;
+    if (!data) return res.status(400).json({ error: "Data is required" });
 
-    await db.collection("urls").add({ url, timestamp: new Date().toISOString() });
+    await db.collection("objects").add({
+      data,
+      timestamp: new Date().toISOString()
+    });
     console.log("Saved");
-    return res.json({ message: "URL saved successfully" });
+    return res.json({ message: "Object saved successfully" });
   } catch (error) {
     console.error("Error:", error);
-    console.log("error");
-
     return res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
-module.exports = { app };
+// Get all saved objects from Firestore
+app.get("/objects", async (req, res) => {
+  try {
+    const snapshot = await db.collection("objects").get();
+    if (snapshot.empty) {
+      return res.status(404).json({ message: "No objects found" });
+    }
+
+    const objects = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    return res.json(objects);
+  } catch (error) {
+    console.error("Error:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+module.exports = app;
