@@ -25,6 +25,67 @@ app.get("/", async (req, res) => {
   res.send("Hello COK!");
 });
 
+app.get("/table", async (req, res) => {
+  try {
+    const snapshot = await db.collection("data").get();
+
+    if (snapshot.empty) {
+      return res.send("<h1>No business data found</h1>");
+    }
+
+    const businesses = snapshot.docs.map(doc => doc.data());
+
+    let tableRows = businesses.map(business => `
+      <tr>
+        <td>${business.businessName}</td>
+        <td>${business.trade}</td>
+        <td>${business.phone}</td>
+        <td>${business.website}</td>
+        <td>${business.email}</td>
+      </tr>
+    `).join("");
+
+    let htmlResponse = `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Business Table</title>
+        <style>
+          table { width: 100%; border-collapse: collapse; }
+          th, td { border: 1px solid black; padding: 8px; text-align: left; }
+          th { background-color: #f2f2f2; }
+        </style>
+      </head>
+      <body>
+        <h1>Business Listings</h1>
+        <table>
+          <thead>
+            <tr>
+              <th>Business Name</th>
+              <th>Trade</th>
+              <th>Phone</th>
+              <th>Website</th>
+              <th>Email</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${tableRows}
+          </tbody>
+        </table>
+      </body>
+      </html>
+    `;
+
+    res.send(htmlResponse);
+  } catch (error) {
+    console.error("Error fetching business data:", error);
+    res.status(500).send("<h1>Internal Server Error</h1>");
+  }
+});
+
+
 app.post("/save", async (req, res) => {
   try {
     const data = req.body;
