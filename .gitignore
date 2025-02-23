@@ -3,3 +3,4 @@ react-chrome-extension/
 node_modules/
 db.json
 test/
+fc/

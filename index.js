@@ -37,11 +37,15 @@ app.get("/table", async (req, res) => {
 
     let tableRows = businesses.map(business => `
       <tr>
-        <td>${business.businessName}</td>
-        <td>${business.trade}</td>
-        <td>${business.phone}</td>
-        <td>${business.website}</td>
-        <td>${business.email}</td>
+        <td>${business.businessName || ""}</td>
+        <td>${Array.isArray(business.services) && business.services.length > 0 ? business.services.join(', ') : business.trade || ""}</td>
+        <td>${business.streetAddress || ""}</td>
+        <td>${business.postalCity ? business.postalCity.split(' ')[0] : ""}</td>
+        <td>${business.postalCity ? business.postalCity.split(' ').slice(1).join(' ') : ""}</td>
+        <td>${business.phone || ""}</td>
+        <td>${business.email || ""}</td>
+        <td>${business.website || ""}</td>
+        <td>${business.link || ""}</td>
       </tr>
     `).join("");
 
@@ -64,10 +68,14 @@ app.get("/table", async (req, res) => {
           <thead>
             <tr>
               <th>Business Name</th>
-              <th>Trade</th>
-              <th>Phone</th>
-              <th>Website</th>
-              <th>Email</th>
+              <th>Type of Business</th>
+              <th>Street Address</th>
+              <th>Postal Code</th>
+              <th>City</th>
+              <th>Phone Number</th>
+              <th>Email Address</th>
+              <th>Company Website</th>
+              <th>Source URL</th>
             </tr>
           </thead>
           <tbody>
@@ -144,6 +152,7 @@ app.post("/save-business", async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
 
 // Get all saved business data from Firestore
 app.get("/businesses", async (req, res) => {
