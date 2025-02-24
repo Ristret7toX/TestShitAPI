@@ -228,26 +228,23 @@ app.post("/airbnb-link", async (req, res) => {
           return res.status(400).json({ error: "Invalid data format. Expecting an array of links." });
       }
 
-      const uniqueLinks = new Set(links);
+      const batch = db.batch();
       const airbnbCollection = db.collection("airbnb-link");
 
-      for (const link of uniqueLinks) {
-          const querySnapshot = await airbnbCollection.where("url", "==", link).get();
-
-          if (querySnapshot.empty) { // Only add if the link does not exist
-              await airbnbCollection.add({
-                  url: link,
-                  timestamp: admin.firestore.FieldValue.serverTimestamp()
-              });
-          }
+      for (const link of new Set(links)) { // Ensure uniqueness before Firestore
+          const docRef = airbnbCollection.doc(encodeURIComponent(link)); // Use link as document ID
+          batch.set(docRef, { url: link, timestamp: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
       }
 
-      res.status(200).json({ message: "Links stored successfully", count: uniqueLinks.size });
+      await batch.commit();
+
+      res.status(200).json({ message: "Links stored successfully", count: links.length });
   } catch (error) {
       console.error("Error storing links:", error);
       res.status(500).json({ error: "Internal server error" });
   }
 });
+
 
 
 module.exports = app;
