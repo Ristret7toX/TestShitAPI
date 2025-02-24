@@ -241,9 +241,6 @@ app.post("/airbnb-link", async (req, res) => {
       const batch = db.batch();
 
       for (const link of uniqueLinks) {
-          const docRef = airbnbCollection.doc("");
-          const doc = await docRef.get();
-
           if (!doc.exists) { // Only add if the link does not already exist
               batch.set(docRef, { url: link, timestamp: admin.firestore.FieldValue.serverTimestamp() });
           }
