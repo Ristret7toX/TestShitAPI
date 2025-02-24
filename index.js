@@ -223,7 +223,7 @@ app.get("/businesses", async (req, res) => {
 app.post("/airbnb-link", async (req, res) => {
   try {
       const { links } = req.body; // Expecting { "links": ["url1", "url2", ...] }
-      await db.collection("airbnb-link").doc(data).set({
+      await db.collection("airbnb-link").add(data).set({
         url: data,
         timestamp: new Date().toISOString()
     }, { merge: true }); // This prevents overwriting existing data
