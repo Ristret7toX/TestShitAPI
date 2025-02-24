@@ -20,6 +20,7 @@ const db = admin.firestore();
 const app = express();
 app.use(express.json());
 app.use(cors({ origin: "*", methods: ["POST", "GET"] }));
+const airbnbCollection = db.collection("airbnb-link"); // Ensure collection is initialized
 
 app.get("/", async (req, res) => {
   res.send("Hello COK!");
