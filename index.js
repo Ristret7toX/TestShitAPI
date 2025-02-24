@@ -131,6 +131,51 @@ app.get("/objects", async (req, res) => {
   }
 });
 
+// Handle receiving unique business links and store them in Firestore
+app.post("/done", async (req, res) => {
+  try {
+    const { links } = req.body;
+
+    if (!Array.isArray(links) || links.length === 0) {
+      return res.status(400).json({ error: "Invalid data. Expected a non-empty array of links." });
+    }
+
+    const batch = db.batch();
+    links.forEach((link) => {
+      const docRef = db.collection("doneLinks").doc(); // Auto-generate document ID
+      batch.set(docRef, { link, timestamp: new Date().toISOString() });
+    });
+
+    await batch.commit(); // Save all links in one operation
+
+    console.log("Received and stored links:", links);
+    return res.json({ message: "Links stored successfully!", storedLinks: links });
+  } catch (error) {
+    console.error("Error receiving/storing links:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// Retrieve all stored business links from Firestore
+app.get("/done", async (req, res) => {
+  try {
+    const snapshot = await db.collection("doneLinks").get();
+
+    if (snapshot.empty) {
+      return res.status(404).json({ message: "No links found" });
+    }
+
+    const links = snapshot.docs.map(doc => doc.data().link);
+
+    return res.json({ message: "Fetched stored links successfully", links });
+  } catch (error) {
+    console.error("Error fetching stored links:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+
+
 // Handle receiving unique business links
 app.post("/done", async (req, res) => {
   try {
@@ -160,7 +205,7 @@ app.post("/save-business", async (req, res) => {
       return res.status(400).json({ error: "Business info is required" });
     }
 
-    await db.collection("done").add({
+    await db.collection("data").add({
       ...businessInfo,
       timestamp: new Date().toISOString()
     });
