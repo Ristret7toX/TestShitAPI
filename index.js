@@ -228,6 +228,7 @@ app.post("/airbnb-link", async (req, res) => {
         timestamp: new Date().toISOString()
     }, { merge: true }); // This prevents overwriting existing data
     
+    
       
       if (!Array.isArray(links)) {
           return res.status(400).json({ error: "Invalid data format. Expecting an array of links." });
