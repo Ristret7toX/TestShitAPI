@@ -222,33 +222,27 @@ app.get("/businesses", async (req, res) => {
 
 app.post("/airbnb-link", async (req, res) => {
   try {
-      const { links } = req.body; // Expecting { "links": ["url1", "url2", ...] }
-      const docRef = db.collection("airbnb-link").doc(encodeURIComponent(data)); // Use URL-safe ID
-      const doc = await docRef.get();
-      
-      if (!doc.exists) {
-          await docRef.set({
-              url: data,
-              timestamp: new Date().toISOString()
-          }, { merge: true }); // Ensures no overwriting
-      }      
-            
+      const { links } = req.body;
+
       if (!Array.isArray(links)) {
           return res.status(400).json({ error: "Invalid data format. Expecting an array of links." });
       }
 
-      const uniqueLinks = new Set(links); // Ensure uniqueness before checking Firestore
-      const batch = db.batch();
+      const uniqueLinks = new Set(links);
+      const airbnbCollection = db.collection("airbnb-link");
 
       for (const link of uniqueLinks) {
-          if (!doc.exists) { // Only add if the link does not already exist
-              batch.set(docRef, { url: link, timestamp: admin.firestore.FieldValue.serverTimestamp() });
+          const querySnapshot = await airbnbCollection.where("url", "==", link).get();
+
+          if (querySnapshot.empty) { // Only add if the link does not exist
+              await airbnbCollection.add({
+                  url: link,
+                  timestamp: admin.firestore.FieldValue.serverTimestamp()
+              });
           }
       }
 
-      await batch.commit();
-
-      res.status(200).json({ message: "Links stored successfully" });
+      res.status(200).json({ message: "Links stored successfully", count: uniqueLinks.size });
   } catch (error) {
       console.error("Error storing links:", error);
       res.status(500).json({ error: "Internal server error" });
