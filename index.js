@@ -220,4 +220,34 @@ app.get("/businesses", async (req, res) => {
   }
 });
 
+app.post("/airbnb-link", async (req, res) => {
+  try {
+      const { links } = req.body; // Expecting { "links": ["url1", "url2", ...] }
+      
+      if (!Array.isArray(links)) {
+          return res.status(400).json({ error: "Invalid data format. Expecting an array of links." });
+      }
+
+      const uniqueLinks = new Set(links); // Ensure uniqueness before checking Firestore
+      const batch = db.batch();
+
+      for (const link of uniqueLinks) {
+          const docRef = airbnbCollection.doc(link);
+          const doc = await docRef.get();
+
+          if (!doc.exists) { // Only add if the link does not already exist
+              batch.set(docRef, { url: link, timestamp: admin.firestore.FieldValue.serverTimestamp() });
+          }
+      }
+
+      await batch.commit();
+
+      res.status(200).json({ message: "Links stored successfully" });
+  } catch (error) {
+      console.error("Error storing links:", error);
+      res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+
 module.exports = app;
