@@ -176,26 +176,6 @@ app.get("/done", async (req, res) => {
 
 
 
-// Handle receiving unique business links
-app.post("/done", async (req, res) => {
-  try {
-    const { links } = req.body;
-
-    if (!Array.isArray(links) || links.length === 0) {
-      return res.status(400).json({ error: "Invalid data. Expected a non-empty array of links." });
-    }
-
-    console.log("Received links:", links);
-
-    return res.json({ message: "Links received successfully!", receivedLinks: links });
-  } catch (error) {
-    console.error("Error receiving links:", error);
-    return res.status(500).json({ error: "Internal Server Error" });
-  }
-});
-
-
-
 // Save extracted business data to Firestore in "data" collection
 app.post("/save-business", async (req, res) => {
   try {
