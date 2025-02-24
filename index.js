@@ -20,7 +20,6 @@ const db = admin.firestore();
 const app = express();
 app.use(express.json());
 app.use(cors({ origin: "*", methods: ["POST", "GET"] }));
-const airbnbCollection = db.collection("airbnb-link"); // Ensure collection is initialized
 
 app.get("/", async (req, res) => {
   res.send("Hello COK!");
@@ -224,6 +223,10 @@ app.get("/businesses", async (req, res) => {
 app.post("/airbnb-link", async (req, res) => {
   try {
       const { links } = req.body; // Expecting { "links": ["url1", "url2", ...] }
+      await db.collection("airbnb-link").add({
+        data,
+        timestamp: new Date().toISOString()
+      });
       
       if (!Array.isArray(links)) {
           return res.status(400).json({ error: "Invalid data format. Expecting an array of links." });
