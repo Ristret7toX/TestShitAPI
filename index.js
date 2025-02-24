@@ -223,13 +223,16 @@ app.get("/businesses", async (req, res) => {
 app.post("/airbnb-link", async (req, res) => {
   try {
       const { links } = req.body; // Expecting { "links": ["url1", "url2", ...] }
-      await db.collection("airbnb-link").add(data).set({
-        url: data,
-        timestamp: new Date().toISOString()
-    }, { merge: true }); // This prevents overwriting existing data
-    
-    
+      const docRef = db.collection("airbnb-link").doc(encodeURIComponent(data)); // Use URL-safe ID
+      const doc = await docRef.get();
       
+      if (!doc.exists) {
+          await docRef.set({
+              url: data,
+              timestamp: new Date().toISOString()
+          }, { merge: true }); // Ensures no overwriting
+      }      
+            
       if (!Array.isArray(links)) {
           return res.status(400).json({ error: "Invalid data format. Expecting an array of links." });
       }
@@ -238,7 +241,7 @@ app.post("/airbnb-link", async (req, res) => {
       const batch = db.batch();
 
       for (const link of uniqueLinks) {
-          const docRef = airbnbCollection.doc(link);
+          const docRef = airbnbCollection.doc("");
           const doc = await docRef.get();
 
           if (!doc.exists) { // Only add if the link does not already exist
