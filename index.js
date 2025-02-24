@@ -160,7 +160,7 @@ app.post("/save-business", async (req, res) => {
       return res.status(400).json({ error: "Business info is required" });
     }
 
-    await db.collection("data").add({
+    await db.collection("done").add({
       ...businessInfo,
       timestamp: new Date().toISOString()
     });
